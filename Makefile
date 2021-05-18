@@ -1,6 +1,8 @@
 fitrack_icon := assets/icon175x175_fitrack.png
 testflight_icon := assets/icon175x175.png
 
+.PHONY: create-assets build test
+
 create-assets:
 	@echo "--> Recreating all assets for readme"
 	cp $(fitrack_icon) assets/icon175x175_fitrack_light_badged.png
@@ -41,3 +43,6 @@ create-assets:
 build:
 	@echo "--> Make release"
 	gem build badge.gemspec
+
+test:
+	@ruby -I. -rfind -e 'Find.find("test").each {|path| require path if path.end_with?("_test.rb")}'
