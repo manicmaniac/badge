@@ -9,6 +9,8 @@ create-assets:
 	bin/badge --glob "/assets/icon175x175_fitrack_light_badged.png"
 	cp $(testflight_icon) assets/icon175x175_alpha_light_badged.png
 	bin/badge --glob "/assets/icon175x175_alpha_light_badged.png"
+	cp $(testflight_icon) assets/icon175x175_light_badged.png
+	bin/badge --glob "/assets/icon175x175_light_badged.png"
 
 	cp $(fitrack_icon) assets/icon175x175_fitrack_dark_badged.png
 	bin/badge --dark --glob "/assets/icon175x175_fitrack_dark_badged.png"
