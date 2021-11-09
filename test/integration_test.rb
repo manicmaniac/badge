@@ -115,7 +115,7 @@ class IntegrationTest < Minitest::Test
     else
       output = 'null:'
     end
-    _, stderr, status = Open3.capture3('compare', '-metric', 'AE', '-verbose', '-dissimilarity-threshold', threshold.to_s, actual, expected, output)
+    _, stderr, status = Open3.capture3('compare', '-metric', 'MSE', '-verbose', '-dissimilarity-threshold', threshold.to_s, actual, expected, output)
     FileUtils.cp(actual, File.join(IMAGE_DIFF_OUTPUT_DIR, "#{@name}-actual.png")) if save_diff
     assert_equal(0, status.to_i, stderr)
   end
