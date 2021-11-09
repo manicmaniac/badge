@@ -9,6 +9,11 @@ class IntegrationTest < Minitest::Test
   ICON_FILENAME = 'icon175x175.png'
   IMAGE_DIFF_OUTPUT_DIR = File.expand_path('../tmp/image_diffs', __dir__)
 
+  def initialize(name = nil)
+    @name = name
+    super(name) unless name.nil?
+  end
+
   def setup
     @working_dir = Dir.mktmpdir
     FileUtils.cp(File.join(ASSETS_DIR, ICON_FILENAME), @working_dir)
@@ -103,9 +108,15 @@ class IntegrationTest < Minitest::Test
   private
 
   def assert_images_equal(expected, actual, threshold = 0.2, save_diff = true)
-    output = save_diff ? File.join(IMAGE_DIFF_OUTPUT_DIR, File.basename(actual)) : 'null:'
-    FileUtils.mkdir_p(IMAGE_DIFF_OUTPUT_DIR) if save_diff
+    if save_diff
+      FileUtils.mkdir_p(IMAGE_DIFF_OUTPUT_DIR) if save_diff
+      FileUtils.cp(expected, File.join(IMAGE_DIFF_OUTPUT_DIR, "#{@name}-expected.png"))
+      output = File.join(IMAGE_DIFF_OUTPUT_DIR, "#{@name}-diff.png")
+    else
+      output = 'null:'
+    end
     _, stderr, status = Open3.capture3('compare', '-metric', 'AE', '-verbose', '-dissimilarity-threshold', threshold.to_s, actual, expected, output)
+    FileUtils.cp(actual, File.join(IMAGE_DIFF_OUTPUT_DIR, "#{@name}-actual.png")) if save_diff
     assert_equal(0, status.to_i, stderr)
   end
 end
