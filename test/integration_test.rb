@@ -48,7 +48,7 @@ class IntegrationTest < Minitest::Test
     assert_includes(stdout, 'Start adding badges...')
     assert_empty(stderr)
     assert_equal(0, status)
-    assert_images_equal(ICON_FILENAME, File.join(ASSETS_DIR, 'icon175x175_light_badged.png'))
+    assert_images_equal(File.join(ASSETS_DIR, 'icon175x175_light_badged.png'), ICON_FILENAME)
   end
 
   # badge --alpha
@@ -57,7 +57,7 @@ class IntegrationTest < Minitest::Test
     assert_includes(stdout, 'Start adding badges...')
     assert_empty(stderr)
     assert_equal(0, status)
-    assert_images_equal(ICON_FILENAME, File.join(ASSETS_DIR, 'icon175x175_alpha_light_badged.png'))
+    assert_images_equal(File.join(ASSETS_DIR, 'icon175x175_alpha_light_badged.png'), ICON_FILENAME)
   end
 
   # badge --dark
@@ -66,7 +66,7 @@ class IntegrationTest < Minitest::Test
     assert_includes(stdout, 'Start adding badges...')
     assert_empty(stderr)
     assert_equal(0, status)
-    assert_images_equal(ICON_FILENAME, File.join(ASSETS_DIR, 'icon175x175_dark_badged.png'))
+    assert_images_equal(File.join(ASSETS_DIR, 'icon175x175_dark_badged.png'), ICON_FILENAME)
   end
 
   # badge --shield "Version-0.0.3-blue" --dark
@@ -75,7 +75,7 @@ class IntegrationTest < Minitest::Test
     assert_includes(stdout, 'Start adding badges...')
     assert_empty(stderr)
     assert_equal(0, status)
-    assert_images_equal(ICON_FILENAME, File.join(ASSETS_DIR, 'icon175x175_shield_Version-0.0.3-blue.png'))
+    assert_images_equal(File.join(ASSETS_DIR, 'icon175x175_shield_Version-0.0.3-blue.png'), ICON_FILENAME)
   end
 
   # badge --shield "1.2-2031-orange" --no_badge
@@ -84,7 +84,7 @@ class IntegrationTest < Minitest::Test
     assert_includes(stdout, 'Start adding badges...')
     assert_empty(stderr)
     assert_equal(0, status)
-    assert_images_equal(ICON_FILENAME, File.join(ASSETS_DIR, 'icon175x175_shield_1.2-2031-orange.png'))
+    assert_images_equal(File.join(ASSETS_DIR, 'icon175x175_shield_1.2-2031-orange.png'), ICON_FILENAME)
   end
 
   # badge --shield "1.2-2031-orange" --no_badge --shield_no_resize
@@ -93,7 +93,7 @@ class IntegrationTest < Minitest::Test
     assert_includes(stdout, 'Start adding badges...')
     assert_empty(stderr)
     assert_equal(0, status)
-    assert_images_equal(ICON_FILENAME, File.join(ASSETS_DIR, 'icon175x175_shield_1.2-2031-orange-no-resize.png'))
+    assert_images_equal(File.join(ASSETS_DIR, 'icon175x175_shield_1.2-2031-orange-no-resize.png'), ICON_FILENAME)
   end
 
   # badge --shield "Version-0.0.3-blue" --dark --shield_geometry "+0+25%" --shield_scale 0.75
@@ -102,7 +102,7 @@ class IntegrationTest < Minitest::Test
     assert_includes(stdout, 'Start adding badges...')
     assert_empty(stderr)
     assert_equal(0, status)
-    assert_images_equal(ICON_FILENAME, File.join(ASSETS_DIR, 'icon175x175_shield_Version-0.0.3-blue-geo-scale.png'))
+    assert_images_equal(File.join(ASSETS_DIR, 'icon175x175_shield_Version-0.0.3-blue-geo-scale.png'), ICON_FILENAME)
   end
 
   private
