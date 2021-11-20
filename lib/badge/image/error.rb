@@ -1,0 +1,2 @@
+class InvalidImage < StandardError
+end

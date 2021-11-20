@@ -1,6 +1,6 @@
 require 'timeout'
-require 'mini_magick'
 require 'open-uri'
+require "badge/image"
 
 module Badge
   class Runner
@@ -42,7 +42,7 @@ module Badge
           response = error.io
           UI.error "Error loading image from shields.io response Error. Use --verbose for more info".red
           UI.verbose response.status if FastlaneCore::Globals.verbose?
-        rescue MiniMagick::Invalid
+        rescue InvalidImage
           UI.error "Error validating image from shields.io. Use --verbose for more info".red
         rescue Exception => error
           UI.error "Other error occured. Use --verbose for more info".red
@@ -63,9 +63,9 @@ module Badge
         icon_changed = false
         app_icons.each do |full_path|
           icon_path = Pathname.new(full_path)
-          icon = MiniMagick::Image.new(full_path)
+          icon = Image.load(full_path)
 
-          result = MiniMagick::Image.new(full_path)
+          result = Image.load(full_path)
 
           if options[:grayscale]
             result.colorspace 'gray'
@@ -112,9 +112,9 @@ module Badge
           UI.error "Other error occured. Use --verbose for more info".red
           UI.verbose error if FastlaneCore::Globals.verbose?
         end
-        new_shield = MiniMagick::Image.open(new_path)
+        new_shield = Image.open(new_path)
       else
-        new_shield = MiniMagick::Image.open(shield.path)
+        new_shield = Image.open(shield.path)
         if icon.width > new_shield.width && !shield_no_resize
           new_shield.resize "#{(icon.width * shield_scale).to_i}x#{icon.height}<"
         else
@@ -122,7 +122,7 @@ module Badge
         end
       end
 
-      result = composite(result, new_shield, alpha_channel, shield_gravity || "north", shield_geometry)
+      result = result.composite(new_shield, alpha_channel, shield_gravity || "north", shield_geometry)
     end
 
     def load_shield(shield_string, shield_parameters)
@@ -134,7 +134,7 @@ module Badge
       UI.verbose "Trying to load image from shields.io. Timeout: #{Badge.shield_io_timeout}s".blue
       UI.verbose "URL: #{url}".blue
 
-      MiniMagick::Image.open(url)
+      Image.open(url)
     end
 
     def check_tools!
@@ -166,26 +166,17 @@ module Badge
       UI.message "'#{icon.path}'"
       UI.verbose "Adding badge image ontop of icon".blue
       if custom_badge && File.exist?(custom_badge) # check if custom image is provided
-        badge = MiniMagick::Image.open(custom_badge)
+        badge = Image.open(custom_badge)
       else
         if alpha_badge
-          badge = MiniMagick::Image.open(dark_badge ? Badge.alpha_dark_badge : Badge.alpha_light_badge)
+          badge = Image.open(dark_badge ? Badge.alpha_dark_badge : Badge.alpha_light_badge)
         else
-          badge = MiniMagick::Image.open(dark_badge ? Badge.beta_dark_badge : Badge.beta_light_badge)
+          badge = Image.open(dark_badge ? Badge.beta_dark_badge : Badge.beta_light_badge)
         end
       end
 
       badge.resize "#{icon.width}x#{icon.height}"
-      result = composite(icon, badge, alpha_channel, badge_gravity || "SouthEast")
-    end
-
-    def composite(image, overlay, alpha_channel, gravity, geometry = nil)
-      image.composite(overlay, 'png') do |c|
-        c.compose "Over"
-        c.alpha 'On' unless !alpha_channel
-        c.gravity gravity
-        c.geometry geometry if geometry
-      end
+      result = icon.composite(badge, alpha_channel, badge_gravity || "SouthEast")
     end
   end
 end
