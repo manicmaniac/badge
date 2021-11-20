@@ -34,3 +34,11 @@ build/
 # unless supporting rvm < 1.11.0 or doing something fancy, ignore this:
 .rvmrc
 Gemfile.lock
+
+# Ruby C extension:
+ext/**/*.bundle
+ext/**/*.so
+ext/**/*.o
+ext/**/*.a
+ext/**/mkmf.log
+ext/**/Makefile
