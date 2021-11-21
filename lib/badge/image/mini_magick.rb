@@ -26,8 +26,15 @@ class Image
     @image.format(format)
   end
 
-  def resize(size)
-    Image::new(@image.resize(size))
+  def resize(width, height, strategy = nil)
+    case strategy
+    when :shrink
+      Image::new(@image.resize("#{width}x#{height}>"))
+    when :enlarge
+      Image::new(@image.resize("#{width}x#{height}<"))
+    else
+      Image::new(@image.resize("#{width}x#{height}"))
+    end
   end
 
   def write(full_path)

@@ -116,9 +116,9 @@ module Badge
       else
         new_shield = Image.open(shield.path)
         if icon.width > new_shield.width && !shield_no_resize
-          new_shield.resize "#{(icon.width * shield_scale).to_i}x#{icon.height}<"
+          new_shield.resize((icon.width * shield_scale).to_i, icon.height, :enlarge)
         else
-          new_shield.resize "#{icon.width}x#{icon.height}>"
+          new_shield.resize(icon.width, icon.height, :shrink)
         end
       end
 
@@ -175,7 +175,7 @@ module Badge
         end
       end
 
-      badge.resize "#{icon.width}x#{icon.height}"
+      badge.resize(icon.width, icon.height)
       result = icon.composite(badge, alpha_channel, badge_gravity || "SouthEast")
     end
   end
