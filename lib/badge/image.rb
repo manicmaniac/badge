@@ -1,4 +1,6 @@
 module Badge
-  require "badge/image/error"
-  require "badge/image/mini_magick"
+  module Image
+    class InvalidImage < StandardError
+    end
+  end
 end

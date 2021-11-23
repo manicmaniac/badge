@@ -212,18 +212,21 @@ static VALUE badge_image_composite(int argc, VALUE *argv, VALUE self) {
 void Init_quartz(void) {
     rb_require("open-uri");
     rb_require("tempfile");
+    rb_require("badge/image");
 
-    VALUE Image = rb_define_class("Image", rb_cObject);
-    rb_define_alloc_func(Image, badge_image_alloc);
-    rb_define_singleton_method(Image, "open", badge_image_s_open, 1);
-    rb_define_singleton_method(Image, "load", badge_image_s_load, 1);
-    rb_define_attr(Image, "path", 1, 0);
-    rb_define_method(Image, "initialize", badge_image_initialize, 1);
-    rb_define_method(Image, "colorspace", badge_image_colorspace, 1);
-    rb_define_method(Image, "format", badge_image_format, 1);
-    rb_define_method(Image, "resize", badge_image_resize, -1);
-    rb_define_method(Image, "write", badge_image_write, 1);
-    rb_define_method(Image, "width", badge_image_width, 0);
-    rb_define_method(Image, "height", badge_image_height, 0);
-    rb_define_method(Image, "composite", badge_image_composite, -1);
+    VALUE Badge = rb_const_get(rb_cObject, rb_intern("Badge"));;
+    VALUE Image = rb_const_get(Badge, rb_intern("Image"));
+    VALUE Quartz = rb_define_class_under(Image, "Quartz", rb_cObject);
+    rb_define_alloc_func(Quartz, badge_image_alloc);
+    rb_define_singleton_method(Quartz, "open", badge_image_s_open, 1);
+    rb_define_singleton_method(Quartz, "load", badge_image_s_load, 1);
+    rb_define_attr(Quartz, "path", 1, 0);
+    rb_define_method(Quartz, "initialize", badge_image_initialize, 1);
+    rb_define_method(Quartz, "colorspace", badge_image_colorspace, 1);
+    rb_define_method(Quartz, "format", badge_image_format, 1);
+    rb_define_method(Quartz, "resize", badge_image_resize, -1);
+    rb_define_method(Quartz, "write", badge_image_write, 1);
+    rb_define_method(Quartz, "width", badge_image_width, 0);
+    rb_define_method(Quartz, "height", badge_image_height, 0);
+    rb_define_method(Quartz, "composite", badge_image_composite, -1);
 }
