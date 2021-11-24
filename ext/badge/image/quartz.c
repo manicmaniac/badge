@@ -126,8 +126,18 @@ static VALUE badge_image_resize(int argc, VALUE *argv, VALUE self) {
     VALUE strategy = (argc == 3) ? argv[2] : Qnil;
 
     CGImageRef cgimage = badge_image_get_cgimage(self);
-    double aspectRatio = (double)CGImageGetHeight(cgimage) / (double)CGImageGetWidth(cgimage);
-    CGRect contextRect = CGRectMake(0, 0, (CGFloat)NUM2DBL(width), (CGFloat)floor(NUM2DBL(height) * aspectRatio));
+    CGFloat fromWidth = (CGFloat)CGImageGetWidth(cgimage);
+    CGFloat fromHeight = (CGFloat)CGImageGetHeight(cgimage);
+    CGFloat toWidth = (CGFloat)NUM2DBL(width);
+    CGFloat toHeight = (CGFloat)NUM2DBL(height);
+    if (rb_equal(strategy, ID2SYM(rb_intern("enlarge"))) == Qtrue && (fromWidth > toWidth || fromHeight > toHeight)) {
+        return self;
+    }
+    if (rb_equal(strategy, ID2SYM(rb_intern("shrink"))) == Qtrue && (fromWidth < toWidth || fromHeight < toHeight)) {
+        return self;
+    }
+    CGFloat aspectRatio = fromHeight / fromWidth;
+    CGRect contextRect = CGRectMake(0, 0, toWidth, (CGFloat)floor(toHeight * aspectRatio));
     CGContextRef context = CGBitmapContextCreate(
         NULL,
         (size_t)contextRect.size.width,
