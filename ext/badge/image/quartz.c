@@ -183,6 +183,15 @@ static VALUE badge_image_composite(int argc, VALUE *argv, VALUE self) {
     VALUE gravity = argv[2];
     VALUE geometry = (argc == 4) ? argv[3] : T_NIL;
 
+    if (!NIL_P(alpha_channel)) {
+        rb_warn("alpha_channel is not supported in Image::Quartz. Install ImageMagick or GraphicsMagick to use this feature.");
+    }
+    if (!NIL_P(gravity)) {
+        rb_warn("alpha_channel is not supported in Image::Quartz. Install ImageMagick or GraphicsMagick to use this feature.");
+    }
+    if (!NIL_P(geometry)) {
+        rb_warn("alpha_channel is not supported in Image::Quartz. Install ImageMagick or GraphicsMagick to use this feature.");
+    }
     CGImageRef cgimage = badge_image_get_cgimage(self);
     CGImageRef overlayCGImage = badge_image_get_cgimage(overlay);
     CGRect contextRect = CGRectMake(0, 0, CGImageGetWidth(cgimage), CGImageGetHeight(cgimage));
@@ -196,7 +205,6 @@ static VALUE badge_image_composite(int argc, VALUE *argv, VALUE self) {
         normalizeBitmapInfo(CGImageGetAlphaInfo(cgimage))
     );
     CGContextSetInterpolationQuality(context, kCGInterpolationHigh);
-    // TODO Use alpha_channel, gravity and geometry
     CGContextDrawImage(context, contextRect, cgimage);
     CGImageRelease(cgimage);
     CGFloat overlayCGImageWidth = (CGFloat)CGImageGetWidth(overlayCGImage);
