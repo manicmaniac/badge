@@ -8,16 +8,22 @@ struct image_data {
 };
 
 // Taken from https://stackoverflow.com/a/26365180/6918498
-static CGBitmapInfo normalizeBitmapInfo(CGBitmapInfo oldBitmapInfo) {
+static CGBitmapInfo normalizeBitmapInfo(CGBitmapInfo oldBitmapInfo, bool opaque) {
     //extract the alpha info by resetting everything else
     CGImageAlphaInfo alphaInfo = oldBitmapInfo & kCGBitmapAlphaInfoMask;
 
     //Since iOS8 it's not allowed anymore to create contexts with unmultiplied Alpha info
     if (alphaInfo == kCGImageAlphaLast) {
         alphaInfo = kCGImageAlphaPremultipliedLast;
-    }
-    if (alphaInfo == kCGImageAlphaFirst) {
+    } else if (alphaInfo == kCGImageAlphaFirst) {
         alphaInfo = kCGImageAlphaPremultipliedFirst;
+    }
+    if (opaque) {
+        if (alphaInfo == kCGImageAlphaPremultipliedFirst) {
+            alphaInfo = kCGImageAlphaNoneSkipFirst;
+        } else if (alphaInfo == kCGImageAlphaPremultipliedLast) {
+            alphaInfo = kCGImageAlphaNoneSkipLast;
+        }
     }
 
     //reset the bits
@@ -145,7 +151,7 @@ static VALUE badge_image_resize(int argc, VALUE *argv, VALUE self) {
         CGImageGetBitsPerComponent(cgimage),
         0,
         CGImageGetColorSpace(cgimage),
-        normalizeBitmapInfo(CGImageGetAlphaInfo(cgimage))
+        normalizeBitmapInfo(CGImageGetAlphaInfo(cgimage), false)
     );
     CGContextSetInterpolationQuality(context, kCGInterpolationHigh);
     CGContextDrawImage(context, contextRect, cgimage);
@@ -191,8 +197,9 @@ static VALUE badge_image_composite(int argc, VALUE *argv, VALUE self) {
     VALUE gravity = argv[2];
     VALUE geometry = (argc == 4) ? argv[3] : Qnil;
 
-    if (!NIL_P(alpha_channel)) {
-        rb_warn("alpha_channel is not supported in Image::Quartz. Install ImageMagick or GraphicsMagick to use this feature.");
+    bool opaque = true;
+    if (!NIL_P(alpha_channel) && TYPE(alpha_channel) == T_TRUE) {
+        opaque = false;
     }
     if (!NIL_P(gravity)) {
         rb_warn("alpha_channel is not supported in Image::Quartz. Install ImageMagick or GraphicsMagick to use this feature.");
@@ -210,7 +217,7 @@ static VALUE badge_image_composite(int argc, VALUE *argv, VALUE self) {
         CGImageGetBitsPerComponent(cgimage),
         0,
         CGImageGetColorSpace(cgimage),
-        normalizeBitmapInfo(CGImageGetAlphaInfo(cgimage))
+        normalizeBitmapInfo(CGImageGetAlphaInfo(cgimage), opaque)
     );
     CGContextSetInterpolationQuality(context, kCGInterpolationHigh);
     CGContextDrawImage(context, contextRect, cgimage);
