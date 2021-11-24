@@ -126,7 +126,6 @@ static VALUE badge_image_resize(int argc, VALUE *argv, VALUE self) {
     VALUE strategy = (argc == 3) ? argv[2] : Qnil;
 
     CGImageRef cgimage = badge_image_get_cgimage(self);
-    if (!cgimage) puts("cgimage is nil");
     double aspectRatio = (double)CGImageGetHeight(cgimage) / (double)CGImageGetWidth(cgimage);
     CGRect contextRect = CGRectMake(0, 0, (CGFloat)NUM2DBL(width), (CGFloat)floor(NUM2DBL(height) * aspectRatio));
     CGContextRef context = CGBitmapContextCreate(
@@ -142,7 +141,6 @@ static VALUE badge_image_resize(int argc, VALUE *argv, VALUE self) {
     CGContextDrawImage(context, contextRect, cgimage);
     CGImageRelease(cgimage);
     CGImageRef resizedCGImage = CGBitmapContextCreateImage(context);
-    if (!resizedCGImage) puts("resizedCGImage is nil");
     CGContextRelease(context);
     badge_image_set_cgimage(self, resizedCGImage);
     return self;
