@@ -87,7 +87,7 @@ static VALUE badge_image_s_open(VALUE klass, VALUE url) {
     VALUE is_svg = rb_funcall(url, rb_intern("end_with?"), 1, rb_str_new_literal(".svg"));
     if (rb_equal(is_svg, Qtrue)) {
         rb_raise(rb_eRuntimeError, "invalid image format %s", StringValuePtr(url));
-        return T_NIL;
+        return Qnil;
     }
     VALUE URI = rb_const_get(klass, rb_intern("URI"));
     return rb_block_call(URI, rb_intern("open"), 1, &url, badge_image_s_open_block, klass);
@@ -95,7 +95,7 @@ static VALUE badge_image_s_open(VALUE klass, VALUE url) {
 
 static VALUE badge_image_s_load(VALUE klass, VALUE path) {
     VALUE self = badge_image_alloc(klass);
-    return badge_image_initialize(self, path, T_NIL);
+    return badge_image_initialize(self, path, Qnil);
 }
 
 static VALUE badge_image_colorspace(VALUE self, VALUE colorspace) {
@@ -123,7 +123,7 @@ static VALUE badge_image_resize(int argc, VALUE *argv, VALUE self) {
     }
     VALUE width = argv[0];
     VALUE height = argv[1];
-    VALUE strategy = (argc == 3) ? argv[2] : T_NIL;
+    VALUE strategy = (argc == 3) ? argv[2] : Qnil;
 
     CGImageRef cgimage = badge_image_get_cgimage(self);
     if (!cgimage) puts("cgimage is nil");
@@ -158,7 +158,7 @@ static VALUE badge_image_write(VALUE self, VALUE path) {
     CGImageDestinationAddImage(destination, cgimage, NULL);
     CGImageDestinationFinalize(destination);
     CFRelease(destination);
-    return T_NIL;
+    return Qnil;
 }
 
 static VALUE badge_image_width(VALUE self) {
@@ -181,7 +181,7 @@ static VALUE badge_image_composite(int argc, VALUE *argv, VALUE self) {
     VALUE overlay = argv[0];
     VALUE alpha_channel = argv[1];
     VALUE gravity = argv[2];
-    VALUE geometry = (argc == 4) ? argv[3] : T_NIL;
+    VALUE geometry = (argc == 4) ? argv[3] : Qnil;
 
     if (!NIL_P(alpha_channel)) {
         rb_warn("alpha_channel is not supported in Image::Quartz. Install ImageMagick or GraphicsMagick to use this feature.");
