@@ -1,11 +1,11 @@
 require 'timeout'
-require 'mini_magick'
 require 'open-uri'
 
 module Badge
   class Runner
     @@retry_attemps = 0
-    @@rsvg_enabled = true
+    @@rsvg_enabled = false
+    @@image_class = nil
 
     def run(path, options)
       check_tools!
@@ -42,7 +42,7 @@ module Badge
           response = error.io
           UI.error "Error loading image from shields.io response Error. Use --verbose for more info".red
           UI.verbose response.status if FastlaneCore::Globals.verbose?
-        rescue MiniMagick::Invalid
+        rescue InvalidImage
           UI.error "Error validating image from shields.io. Use --verbose for more info".red
         rescue Exception => error
           UI.error "Other error occured. Use --verbose for more info".red
@@ -63,9 +63,9 @@ module Badge
         icon_changed = false
         app_icons.each do |full_path|
           icon_path = Pathname.new(full_path)
-          icon = MiniMagick::Image.new(full_path)
+          icon = @@image_class.load(full_path)
 
-          result = MiniMagick::Image.new(full_path)
+          result = @@image_class.load(full_path)
 
           if options[:grayscale]
             result.colorspace 'gray'
@@ -112,17 +112,17 @@ module Badge
           UI.error "Other error occured. Use --verbose for more info".red
           UI.verbose error if FastlaneCore::Globals.verbose?
         end
-        new_shield = MiniMagick::Image.open(new_path)
+        new_shield = @@image_class.open(new_path)
       else
-        new_shield = MiniMagick::Image.open(shield.path)
+        new_shield = @@image_class.open(shield.path)
         if icon.width > new_shield.width && !shield_no_resize
-          new_shield.resize "#{(icon.width * shield_scale).to_i}x#{icon.height}<"
+          new_shield.resize((icon.width * shield_scale).to_i, icon.height, :enlarge)
         else
-          new_shield.resize "#{icon.width}x#{icon.height}>"
+          new_shield.resize(icon.width, icon.height, :shrink)
         end
       end
 
-      result = composite(result, new_shield, alpha_channel, shield_gravity || "north", shield_geometry)
+      result = result.composite(new_shield, alpha_channel, shield_gravity || "north", shield_geometry)
     end
 
     def load_shield(shield_string, shield_parameters)
@@ -134,10 +134,13 @@ module Badge
       UI.verbose "Trying to load image from shields.io. Timeout: #{Badge.shield_io_timeout}s".blue
       UI.verbose "URL: #{url}".blue
 
-      MiniMagick::Image.open(url)
+      @@image_class.open(url)
     end
 
     def check_tools!
+      if !ENV['BADGE_NO_MAGICK'] && `which convert`.include?('convert') || `which gm`.include?('gm')
+        require 'badge/image/mini_magick'
+        @@image_class = Image::MiniMagick
         if !`which rsvg-convert`.include?('rsvg-convert')
           UI.important("Install RSVG to get better results for shields on top of your icon")
           UI.important("")
@@ -146,9 +149,18 @@ module Badge
           UI.important("")
           @@rsvg_enabled = false
         end
-        return if `which convert`.include?('convert')
-        return if `which gm`.include?('gm')
-
+      elsif RUBY_PLATFORM.include?('darwin')
+        require 'badge/image/quartz'
+        @@image_class = Image::Quartz
+        @@rsvg_enabled = false
+        UI.important("Neither ImageMagick nor GraphicsMagick are found")
+        UI.important("`badge` fallbacks to macOS Quartz")
+        UI.important("To get better result, install RSVG with ImageMagick or GraphicsMagick")
+        UI.command("brew install librsvg imagemagick")
+        UI.important("or")
+        UI.command("brew install librsvg graphicsmagick")
+        UI.important("")
+      else
         UI.error("You have to install ImageMagick or GraphicsMagick to use `badge`")
         UI.error("")
         UI.error("Install it using (ImageMagick):")
@@ -160,32 +172,24 @@ module Badge
         UI.error("If you don't have homebrew, visit http://brew.sh")
 
         UI.user_error!("Install ImageMagick and start your lane again!")
+      end
     end
 
     def add_badge(custom_badge, dark_badge, icon, alpha_badge, alpha_channel, badge_gravity)
       UI.message "'#{icon.path}'"
       UI.verbose "Adding badge image ontop of icon".blue
       if custom_badge && File.exist?(custom_badge) # check if custom image is provided
-        badge = MiniMagick::Image.open(custom_badge)
+        badge = @@image_class.open(custom_badge)
       else
         if alpha_badge
-          badge = MiniMagick::Image.open(dark_badge ? Badge.alpha_dark_badge : Badge.alpha_light_badge)
+          badge = @@image_class.open(dark_badge ? Badge.alpha_dark_badge : Badge.alpha_light_badge)
         else
-          badge = MiniMagick::Image.open(dark_badge ? Badge.beta_dark_badge : Badge.beta_light_badge)
+          badge = @@image_class.open(dark_badge ? Badge.beta_dark_badge : Badge.beta_light_badge)
         end
       end
 
-      badge.resize "#{icon.width}x#{icon.height}"
-      result = composite(icon, badge, alpha_channel, badge_gravity || "SouthEast")
-    end
-
-    def composite(image, overlay, alpha_channel, gravity, geometry = nil)
-      image.composite(overlay, 'png') do |c|
-        c.compose "Over"
-        c.alpha 'On' unless !alpha_channel
-        c.gravity gravity
-        c.geometry geometry if geometry
-      end
+      badge.resize(icon.width, icon.height)
+      result = icon.composite(badge, alpha_channel, badge_gravity || "SouthEast")
     end
   end
 end
